@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Player Stats</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/darkly/bootstrap.min.css" rel="stylesheet">
+  <style>
+body {
+      background-color: #000 !important;
+      color: #e0e0e0;
+    }
+    .navbar, .footer, .card {
+      background-color: #111 !important;
+    }
+    .btn-primary, .btn-success {
+      background-color: #d43249 !important;
+      border-color: #d43249 !important;
+    }
+    a, .text-primary {
+      color: #ffffff !important;
+    }
+    .navbar-brand img {
+      height: 40px;
+      margin-right: 10px;
+    }
+    .content-section {
+      padding: 40px 0;
+    }
+    .nav-link:hover{
+      transform: scale(1.1);
+    }
+    footer {
+      background-color: #111;
+      padding: 20px 0;
+    }
+    footer p {
+      color: #888;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+ <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="Index.html">
+        <img src="Sbeam_logo.png" alt="Sbeam Logo">
+        <span> | Sbeam</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="UserStats.html">User Stats</a></li>
+          <li class="nav-item"><a class="nav-link" href="GameRanking.html">Rankings</a></li>
+          <li class="nav-item"><a class="nav-link" href="GenrePlayers.html">Genre Playerbase</a></li>
+          <li class="nav-item"><a class="nav-link" href="GenreGameStats.html">Genre Stats</a></li>
+          <li class="nav-item"><a class="nav-link" href="RecentlyPlayed.html">Recently Played</a></li>
+          <li class="nav-item"><a class="nav-link" href="PlayerCount.html">Player Count</a></li>
+          <li class="nav-item"><a class="nav-link" href="UpdateUserGameStat.html">Update User Stat</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+<!-- Main Content -->
+<div class="content-section">
+  <div class="container">
+    <div class="feature-box">
+      <h2>User Stats</h2>
+      <div class="mb-3">
+<label for="userDropdown" class="form-label">Select a User:</label>
+<select id="userDropdown" class="form-control">
+  <option value="">Select a User</option>
+</select>
+      </div>
+
+      <!-- Results Table -->
+      <div class="mt-4" id="rankingSection" style="display: none;">
+        <h3>User Stats</h3>
+<table class="table table-bordered table-striped">
+  <thead class="table-dark">
+    <tr>
+      <th>Username</th>
+      <th>Most Recently Played</th>
+      <th>Most Played</th>
+      <th>Total Hours</th>
+      <th>Total Achievements</th>
+    </tr>
+  </thead>
+  <tbody id="rankingTableBody"></tbody>
+</table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const dropdown = document.getElementById('userDropdown');
+  const resultSection = document.getElementById('rankingSection');
+  const resultTableBody = document.getElementById('rankingTableBody');
+
+  // Populate dropdown
+  try {
+    const response = await fetch('/UserStats/users');
+    const users = await response.json();
+    users.forEach(user => {
+      const option = document.createElement('option');
+      option.value = user.UserID;
+      option.textContent = user.Username;
+      dropdown.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Error loading users:', error);
+  }
+
+  // Fetch stats when user selected
+  dropdown.addEventListener('change', async (event) => {
+    const UserID = event.target.value;
+    if (!UserID) {
+      resultSection.style.display = 'none';
+      return;
+    }
+
+    try {
+      const res = await fetch(`/UserStats/details?UserID=${UserID}`);
+      const data = await res.json();
+      resultTableBody.innerHTML = `
+        <tr>
+          <td>${data.Username}</td>
+          <td>${data.RecentlyPlayedGame || 'N/A'}</td>
+          <td>${data.MostPlayedGame || 'N/A'}</td>
+          <td>${parseFloat(data.TotalHours).toFixed(2)}</td>
+          <td>${data.TotalAchievements}</td>
+        </tr>
+      `;
+      resultSection.style.display = 'block';
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+    }
+  });
+});
+</script>
+
+</body>
+</html>
